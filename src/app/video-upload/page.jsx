@@ -1,7 +1,5 @@
-import VideoUpload from "@/components/VideoUpload";
+import VideoUpload from "../../components/VideoUpload";
 
-function VideoUploadPage() {
+export default function VideoUploadPage() {
   return <VideoUpload />;
 }
-
-export default VideoUploadPage;
