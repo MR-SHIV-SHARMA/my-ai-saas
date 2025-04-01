@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
 import dbConnect from "../../../lib/dbConnect";
-import Video from "../../../models/Video";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -14,12 +13,18 @@ export async function POST(req) {
     await dbConnect();
     const formData = await req.formData();
     const file = formData.get("file");
-    const title = formData.get("title");
-    const description = formData.get("description");
-    const originalSize = formData.get("originalSize");
 
     if (!file) {
       return NextResponse.json({ error: "File not found" }, { status: 400 });
+    }
+
+    // Check file type
+    const acceptedTypes = ["image/jpeg", "image/png", "image/gif"]; // Adjust as needed
+    if (!acceptedTypes.includes(file.type)) {
+      return NextResponse.json(
+        { error: "Unsupported file type" },
+        { status: 400 }
+      );
     }
 
     const bytes = await file.arrayBuffer();
@@ -27,7 +32,7 @@ export async function POST(req) {
 
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "next-cloudinary-uploads", resource_type: "video" },
+        { folder: "next-cloudinary-uploads", resource_type: "image" }, // Use resource_type "image" for images
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
@@ -36,20 +41,13 @@ export async function POST(req) {
       uploadStream.end(buffer);
     });
 
-    const newVideo = new Video({
-      title,
-      description,
-      publicId: result.public_id,
-      originalSize,
-      compressedSize: result.bytes,
-      duration: result.duration,
-      createdAt: new Date(),
-    });
-    await newVideo.save();
+    // Optionally save the image reference in MongoDB
+    // const newImage = new Image({ publicId: result.public_id });
+    // await newImage.save();
 
     return NextResponse.json({ publicId: result.public_id }, { status: 200 });
   } catch (error) {
-    console.log("Upload video failed", error);
-    return NextResponse.json({ error: "Upload video failed" }, { status: 500 });
+    console.log("Upload image failed", error);
+    return NextResponse.json({ error: "Upload image failed" }, { status: 500 });
   }
 }
