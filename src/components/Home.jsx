@@ -2,13 +2,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import VideoCard from "@/components/VideoCard";
-import { Video } from "@/types";
 import Link from "next/link";
 
 function Home() {
-  const [videos, setVideos] = useState<Video[]>([]);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   const fetchVideos = useCallback(async () => {
     try {
@@ -16,7 +15,7 @@ function Home() {
       if (Array.isArray(response.data)) {
         setVideos(response.data);
       } else {
-        throw new Error(" Unexpected response format");
+        throw new Error("Unexpected response format");
       }
     } catch (error) {
       console.log(error);
@@ -30,16 +29,14 @@ function Home() {
     fetchVideos();
   }, [fetchVideos]);
 
-  const handleDownload = useCallback((url: string, title: string) => {
-    () => {
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `${title}.mp4`);
-      link.setAttribute("target", "_blank");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
+  const handleDownload = useCallback((url, title) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${title}.mp4`);
+    link.setAttribute("target", "_blank");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }, []);
 
   if (loading) {

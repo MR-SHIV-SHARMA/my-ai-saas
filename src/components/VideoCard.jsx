@@ -2,22 +2,16 @@ import React, { useState, useEffect, useCallback } from "react";
 import { getCldImageUrl, getCldVideoUrl } from "next-cloudinary";
 import { Download, Clock, FileDown, FileUp } from "lucide-react";
 import dayjs from "dayjs";
-import realtiveTime from "dayjs/plugin/relativeTime";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { filesize } from "filesize";
-import { Video } from "@/types";
 
-dayjs.extend(realtiveTime);
+dayjs.extend(relativeTime);
 
-interface VideoCardProps {
-  video: Video;
-  onDownload: (url: string, title: string) => void;
-}
-
-const VideoCard: React.FC<VideoCardProps> = ({ video, onDownload }) => {
+const VideoCard = ({ video, onDownload }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [previewError, setPreviewError] = useState(false);
 
-  const getThumbnailUrl = useCallback((publicId: string) => {
+  const getThumbnailUrl = useCallback((publicId) => {
     return getCldImageUrl({
       src: publicId,
       width: 400,
@@ -30,7 +24,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onDownload }) => {
     });
   }, []);
 
-  const getFullVideoUrl = useCallback((publicId: string) => {
+  const getFullVideoUrl = useCallback((publicId) => {
     return getCldVideoUrl({
       src: publicId,
       width: 1920,
@@ -38,7 +32,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onDownload }) => {
     });
   }, []);
 
-  const getPreviewVideoUrl = useCallback((publicId: string) => {
+  const getPreviewVideoUrl = useCallback((publicId) => {
     return getCldVideoUrl({
       src: publicId,
       width: 400,
@@ -47,11 +41,11 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onDownload }) => {
     });
   }, []);
 
-  const formatSize = useCallback((size: number) => {
+  const formatSize = useCallback((size) => {
     return filesize(size);
   }, []);
 
-  const formatDuration = useCallback((seconds: number) => {
+  const formatDuration = useCallback((seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.round(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
