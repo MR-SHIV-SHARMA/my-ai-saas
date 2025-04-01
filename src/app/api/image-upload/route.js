@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import dbConnect from "@/lib/dbConnect";
-import Video from "@/models/Video";
+import dbConnect from "../../../lib/dbConnect";
+import Video from "../../../models/Video";
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
