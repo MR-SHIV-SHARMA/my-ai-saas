@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useCallback } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import { FiUploadCloud, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
 function VideoUpload() {
@@ -11,23 +10,13 @@ function VideoUpload() {
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const router = useRouter();
-  const MAX_FILE_SIZE = 70 * 1024 * 1024;
-
-  const [isDragging, setIsDragging] = useState(false);
+  const [videoUrls, setVideoUrls] = useState(null); // Store original & compressed video URLs
   const [uploadProgress, setUploadProgress] = useState(0);
-
-  const handleDrag = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(e.type === "dragenter" || e.type === "dragover");
-  }, []);
+  const MAX_FILE_SIZE = 70 * 1024 * 1024;
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
-
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile && droppedFile.type.startsWith("video/")) {
       setFile(droppedFile);
@@ -36,11 +25,11 @@ function VideoUpload() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage(""); // Reset error message
-    setSuccessMessage(""); // Reset success message
+    setErrorMessage("");
+    setSuccessMessage("");
+    setVideoUrls(null);
 
     if (!file) return;
-
     if (file.size > MAX_FILE_SIZE) {
       setErrorMessage("File size too large. Maximum allowed is 70 MB.");
       return;
@@ -51,10 +40,9 @@ function VideoUpload() {
     formData.append("file", file);
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("originalSize", file.size.toString());
 
     try {
-      await axios.post("/api/video-upload", formData, {
+      const response = await axios.post("/api/video-upload", formData, {
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
@@ -62,7 +50,16 @@ function VideoUpload() {
           setUploadProgress(percentCompleted);
         },
       });
-      // ... success handling ...
+
+      if (response.status === 200) {
+        setSuccessMessage("Video uploaded successfully!");
+        setVideoUrls({
+          original: response.data.originalUrl,
+          compressed: response.data.compressedUrl,
+        });
+      } else {
+        throw new Error("Unexpected response from server.");
+      }
     } catch (error) {
       setErrorMessage("Failed to upload video. Please try again.");
     } finally {
@@ -71,136 +68,112 @@ function VideoUpload() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-blue-900 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-6 transition-all duration-300 hover:shadow-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-              Video Optimizer
-            </span>
-          </h1>
-          <p className="text-gray-600">
-            Upload and compress videos in MP4, MOV, or AVI format
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 p-6">
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-6">
+        <h1 className="text-3xl font-bold text-gray-900 text-center mb-4">
+          Video Optimizer
+        </h1>
+        <p className="text-gray-600 text-center mb-6">
+          Upload and get an optimized version instantly!
+        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div className="form-group relative">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="input peer"
-                placeholder=" "
-                required
-              />
-              <label className="floating-label">Video Title</label>
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Video Title"
+            required
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
 
-            <div className="form-group relative">
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="textarea peer"
-                placeholder=" "
-                rows="3"
-              />
-              <label className="floating-label">Description (optional)</label>
-            </div>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Description (optional)"
+            className="w-full p-2 border border-gray-300 rounded-md"
+          />
 
-            <div
-              className={`drop-zone ${isDragging ? "drag-active" : ""} ${
-                errorMessage ? "border-error" : ""
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <div className="drop-content">
-                <FiUploadCloud className="text-4xl text-blue-600 mb-4" />
-                <p className="text-gray-600 mb-2">
-                  {file
-                    ? file.name
-                    : "Drag & drop video file or click to browse"}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Max file size: 70MB • Supported formats: MP4, MOV, AVI
-                </p>
-                <input
-                  type="file"
-                  accept="video/mp4,video/quicktime,video/x-msvideo"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                  id="fileInput"
-                />
-                <label
-                  htmlFor="fileInput"
-                  className="mt-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg cursor-pointer hover:bg-blue-200 transition-colors"
-                >
-                  Browse Files
-                </label>
-              </div>
-            </div>
-
-            {file && (
-              <div className="file-info animate-fade-in">
-                <div className="flex justify-between items-center">
-                  <span className="truncate">{file.name}</span>
-                  <span className="text-sm">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </span>
-                </div>
-                {file.size > MAX_FILE_SIZE && (
-                  <div className="text-red-600 text-sm mt-1 flex items-center">
-                    <FiAlertCircle className="mr-2" />
-                    File exceeds maximum size limit
-                  </div>
-                )}
-              </div>
-            )}
+          <div
+            className="border-2 border-dashed p-6 text-center cursor-pointer"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+          >
+            <FiUploadCloud className="text-4xl text-blue-600 mx-auto" />
+            <p className="text-gray-600">
+              {file ? file.name : "Drag & drop or click to upload"}
+            </p>
+            <input
+              type="file"
+              accept="video/mp4,video/quicktime,video/x-msvideo"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              className="hidden"
+            />
           </div>
 
+          {file && (
+            <p className="text-gray-700 text-sm">
+              File: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+            </p>
+          )}
+
           {isUploading && (
-            <div className="progress-bar">
+            <div className="relative w-full h-2 bg-gray-300 rounded-full">
               <div
-                className="progress-fill"
+                className="absolute top-0 left-0 h-full bg-blue-600 rounded-full transition-all"
                 style={{ width: `${uploadProgress}%` }}
               ></div>
-              <span className="progress-text">{uploadProgress}%</span>
             </div>
           )}
 
           <button
             type="submit"
-            className="submit-btn"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
             disabled={isUploading || !file || file.size > MAX_FILE_SIZE}
           >
-            {isUploading ? (
-              <div className="flex items-center justify-center">
-                <div className="loader"></div>
-                <span className="ml-2">Processing...</span>
-              </div>
-            ) : (
-              "Optimize & Upload"
-            )}
+            {isUploading ? "Uploading..." : "Optimize & Upload"}
           </button>
 
           {errorMessage && (
-            <div className="status-message error">
+            <p className="text-red-600 flex items-center">
               <FiAlertCircle className="mr-2" />
               {errorMessage}
-            </div>
+            </p>
           )}
 
           {successMessage && (
-            <div className="status-message success">
+            <p className="text-green-600 flex items-center">
               <FiCheckCircle className="mr-2" />
               {successMessage}
-            </div>
+            </p>
           )}
         </form>
+
+        {videoUrls && (
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold text-gray-800">Video URLs:</h2>
+            <p className="text-sm">
+              <span className="font-semibold">Original:</span>{" "}
+              <a
+                href={videoUrls.original}
+                target="_blank"
+                className="text-blue-600 underline"
+              >
+                {videoUrls.original}
+              </a>
+            </p>
+            <p className="text-sm">
+              <span className="font-semibold">Compressed:</span>{" "}
+              <a
+                href={videoUrls.compressed}
+                target="_blank"
+                className="text-blue-600 underline"
+              >
+                {videoUrls.compressed}
+              </a>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
