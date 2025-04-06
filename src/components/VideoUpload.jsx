@@ -1,7 +1,12 @@
 "use client";
 import React, { useState, useCallback } from "react";
 import axios from "axios";
-import { FiUploadCloud, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
+import {
+  FiUploadCloud,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiDownload,
+} from "react-icons/fi";
 
 function VideoUpload() {
   const [file, setFile] = useState(null);
@@ -12,6 +17,9 @@ function VideoUpload() {
   const [successMessage, setSuccessMessage] = useState("");
   const [videoUrls, setVideoUrls] = useState(null); // Store original & compressed video URLs
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [originalSize, setOriginalSize] = useState(0);
+  const [compressedSize, setCompressedSize] = useState(null);
+
   const MAX_FILE_SIZE = 70 * 1024 * 1024;
 
   const handleDrop = useCallback((e) => {
@@ -20,6 +28,7 @@ function VideoUpload() {
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile && droppedFile.type.startsWith("video/")) {
       setFile(droppedFile);
+      setOriginalSize((droppedFile.size / 1024 / 1024).toFixed(2)); // Store original size in MB
     }
   }, []);
 
@@ -57,6 +66,13 @@ function VideoUpload() {
           original: response.data.originalUrl,
           compressed: response.data.compressedUrl,
         });
+
+        // Get compressed file size
+        const compressedResponse = await axios.head(
+          response.data.compressedUrl
+        );
+        const compressedFileSize = compressedResponse.headers["content-length"];
+        setCompressedSize((compressedFileSize / 1024 / 1024).toFixed(2)); // Convert to MB
       } else {
         throw new Error("Unexpected response from server.");
       }
@@ -84,14 +100,14 @@ function VideoUpload() {
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Video Title"
             required
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md text-black"
           />
 
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description (optional)"
-            className="w-full p-2 border border-gray-300 rounded-md"
+            className="w-full p-2 border border-gray-300 rounded-md text-black"
           />
 
           <div
@@ -106,14 +122,21 @@ function VideoUpload() {
             <input
               type="file"
               accept="video/mp4,video/quicktime,video/x-msvideo"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={(e) => {
+                setFile(e.target.files?.[0] || null);
+                if (e.target.files[0]) {
+                  setOriginalSize(
+                    (e.target.files[0].size / 1024 / 1024).toFixed(2)
+                  );
+                }
+              }}
               className="hidden"
             />
           </div>
 
           {file && (
             <p className="text-gray-700 text-sm">
-              File: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+              File: {file.name} ({originalSize} MB)
             </p>
           )}
 
@@ -151,8 +174,17 @@ function VideoUpload() {
 
         {videoUrls && (
           <div className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-800">Video URLs:</h2>
-            <p className="text-sm">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Your Videos:
+            </h2>
+
+            {/* Compressed Video Preview */}
+            <video controls className="w-full mt-4 rounded-md shadow">
+              <source src={videoUrls.compressed} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+
+            <p className="text-sm mt-2">
               <span className="font-semibold">Original:</span>{" "}
               <a
                 href={videoUrls.original}
@@ -162,6 +194,7 @@ function VideoUpload() {
                 {videoUrls.original}
               </a>
             </p>
+
             <p className="text-sm">
               <span className="font-semibold">Compressed:</span>{" "}
               <a
@@ -172,6 +205,24 @@ function VideoUpload() {
                 {videoUrls.compressed}
               </a>
             </p>
+
+            {/* File Size Comparison */}
+            {compressedSize && (
+              <p className="text-sm mt-2 font-semibold text-gray-700">
+                Original Size: {originalSize} MB → Compressed Size:{" "}
+                {compressedSize} MB
+              </p>
+            )}
+
+            {/* Download Button */}
+            <a
+              href={videoUrls.compressed}
+              download
+              className="mt-4 inline-flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
+            >
+              <FiDownload className="mr-2" />
+              Download Compressed Video
+            </a>
           </div>
         )}
       </div>
