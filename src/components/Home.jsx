@@ -1,78 +1,58 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import VideoCard from "../components/VideoCard";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 
 function Home() {
-  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const fetchVideos = useCallback(async () => {
-    try {
-      const response = await axios.get("/api/videos");
-      if (Array.isArray(response.data)) {
-        setVideos(response.data);
-      } else {
-        throw new Error("Unexpected response format");
-      }
-    } catch (error) {
-      console.log(error);
-      setError("Failed to fetch videos");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
-
-  const handleDownload = useCallback((url, title) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `${title}.mp4`);
-    link.setAttribute("target", "_blank");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-background">
+        <Loader2 className="animate-spin text-white w-10 h-10" />
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Videos</h1>
-      <div className="space-x-4">
-        <Link href="/social-share">
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-            Social Share
-          </button>
-        </Link>
-        <Link href="/video-upload">
-          <button className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
-            Video Upload
-          </button>
-        </Link>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 animate-background px-4 relative overflow-hidden">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-white/30 backdrop-blur-md z-0" />
+
+      <div className="max-w-xl w-full text-center z-10">
+        <h1 className="text-4xl font-extrabold text-white drop-shadow mb-8">
+          🎬 Media Toolkit
+        </h1>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <Link href="/social-share">
+            <div className="bg-white/80 shadow-lg hover:shadow-2xl transition duration-300 rounded-2xl p-6 border border-white/40 backdrop-blur-sm cursor-pointer">
+              <h2 className="text-lg font-semibold text-blue-600 mb-2">
+                📸 Social Share
+              </h2>
+              <p className="text-sm text-gray-700">
+                Upload and format images for Instagram, Facebook, and more.
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/video-upload">
+            <div className="bg-white/80 shadow-lg hover:shadow-2xl transition duration-300 rounded-2xl p-6 border border-white/40 backdrop-blur-sm cursor-pointer">
+              <h2 className="text-lg font-semibold text-green-600 mb-2">
+                🎥 Video Upload
+              </h2>
+              <p className="text-sm text-gray-700">
+                Upload and compress videos optimized for web and social use.
+              </p>
+            </div>
+          </Link>
+        </div>
       </div>
-      {videos.length === 0 ? (
-        <div className="text-center text-lg text-gray-500">
-          No videos available
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {videos.map((video) => (
-            <VideoCard
-              key={video.id}
-              video={video}
-              onDownload={handleDownload}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

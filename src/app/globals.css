@@ -115,3 +115,14 @@ body {
     transform: translateY(0);
   }
 }
+
+
+
+
+
+@layer utilities {
+  .animate-background {
+    background-size: 200% 200%;
+    animation: gradient 15s ease infinite;
+  }
+}
