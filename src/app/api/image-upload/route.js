@@ -10,9 +10,34 @@ cloudinary.config({
 const socialFormats = [
   { name: "instagram_square", width: 1080, height: 1080 },
   { name: "instagram_portrait", width: 1080, height: 1350 },
+  { name: "instagram_story", width: 1080, height: 1920 },
+
+  { name: "facebook_post", width: 1200, height: 630 },
+  { name: "facebook_cover", width: 820, height: 312 },
+  { name: "facebook_story", width: 1080, height: 1920 },
+
   { name: "twitter_post", width: 1200, height: 675 },
   { name: "twitter_header", width: 1500, height: 500 },
-  { name: "facebook_cover", width: 820, height: 312 },
+
+  { name: "linkedin_post", width: 1200, height: 627 },
+  { name: "linkedin_banner", width: 1584, height: 396 },
+
+  { name: "youtube_thumbnail", width: 1280, height: 720 },
+  { name: "youtube_channel_banner", width: 2560, height: 1440 },
+
+  { name: "pinterest_pin", width: 1000, height: 1500 },
+
+  { name: "snapchat_story", width: 1080, height: 1920 },
+
+  { name: "tiktok_video_cover", width: 1080, height: 1920 },
+
+  { name: "threads_post", width: 1080, height: 1350 },
+
+  { name: "reddit_banner", width: 1920, height: 384 },
+
+  { name: "tumblr_graphic", width: 1280, height: 720 },
+  { name: "whatsapp_status", width: 1080, height: 1920 },
+  { name: "medium_post_image", width: 1200, height: 900 },
 ];
 
 export async function POST(req) {

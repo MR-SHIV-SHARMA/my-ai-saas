@@ -7,9 +7,34 @@ const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const socialFormats = {
   "Instagram Square (1:1)": { width: 1080, height: 1080 },
   "Instagram Portrait (4:5)": { width: 1080, height: 1350 },
+  "Instagram Story (9:16)": { width: 1080, height: 1920 },
+
+  "Facebook Post (1.91:1)": { width: 1200, height: 630 },
+  "Facebook Cover (205:78)": { width: 820, height: 312 },
+  "Facebook Story (9:16)": { width: 1080, height: 1920 },
+
   "Twitter Post (16:9)": { width: 1200, height: 675 },
   "Twitter Header (3:1)": { width: 1500, height: 500 },
-  "Facebook Cover (205:78)": { width: 820, height: 312 },
+
+  "LinkedIn Post (1.91:1)": { width: 1200, height: 627 },
+  "LinkedIn Banner (4:1)": { width: 1584, height: 396 },
+
+  "YouTube Thumbnail (16:9)": { width: 1280, height: 720 },
+  "YouTube Channel Banner (2560x1440)": { width: 2560, height: 1440 },
+
+  "Pinterest Pin (2:3)": { width: 1000, height: 1500 },
+
+  "Snapchat Story (9:16)": { width: 1080, height: 1920 },
+
+  "TikTok Video Cover (9:16)": { width: 1080, height: 1920 },
+
+  "Threads Post (4:5)": { width: 1080, height: 1350 },
+
+  "Reddit Banner (5:1)": { width: 1920, height: 384 },
+
+  "Tumblr Graphic (16:9)": { width: 1280, height: 720 },
+  "WhatsApp Status (9:16)": { width: 1080, height: 1920 },
+  "Medium Post Image (4:3)": { width: 1200, height: 900 },
 };
 
 export default function SocialShare() {
@@ -66,7 +91,9 @@ export default function SocialShare() {
       .then((blob) => {
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `${selectedFormat.replace(/\s+/g, "_").toLowerCase()}.png`;
+        link.download = `${selectedFormat
+          .replace(/\s+/g, "_")
+          .toLowerCase()}.png`;
         link.click();
       });
   };
