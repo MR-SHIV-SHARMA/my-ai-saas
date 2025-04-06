@@ -36,7 +36,6 @@ export async function POST(req) {
     const file = formData.get("file");
 
     if (!file) {
-      console.log("❌ No file found in request.");
       return NextResponse.json({ error: "File not found" }, { status: 400 });
     }
 
@@ -58,7 +57,7 @@ export async function POST(req) {
           folder: "next-cloudinary-uploads",
           resource_type: "image",
           eager: eagerTransforms,
-          tags: ["auto-delete-10min"], // ✅ Add tag for auto-delete
+          tags: ["auto-delete-10min"],
         },
         (error, result) => {
           if (error) reject(error);
@@ -66,14 +65,6 @@ export async function POST(req) {
         }
       );
       uploadStream.end(buffer);
-    });
-
-    console.log("✅ Upload Result from Cloudinary:");
-    console.log("Public ID:", result.public_id);
-    console.log("URL:", result.secure_url);
-    console.log("Eager URLs:");
-    result.eager?.forEach((eager, index) => {
-      console.log(` - ${socialFormats[index].name}: ${eager.secure_url}`);
     });
 
     return NextResponse.json(
@@ -88,7 +79,6 @@ export async function POST(req) {
       { status: 200 }
     );
   } catch (error) {
-    console.log("❌ Upload image failed:", error);
     return NextResponse.json({ error: "Upload image failed" }, { status: 500 });
   }
 }
