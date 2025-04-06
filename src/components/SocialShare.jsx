@@ -85,7 +85,7 @@ export default function SocialShare() {
           <input
             type="file"
             onChange={handleFileUpload}
-            className="file-input file-input-bordered file-input-primary w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="file-input text-black file-input-bordered file-input-primary w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
@@ -102,7 +102,7 @@ export default function SocialShare() {
                 Select Social Media Format
               </label>
               <select
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full text-black p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 value={selectedFormat}
                 onChange={(e) => setSelectedFormat(e.target.value)}
               >
