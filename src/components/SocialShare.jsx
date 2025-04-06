@@ -1,13 +1,15 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from "react";
-import { CldImage } from "next-cloudinary";
+
+const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
 const socialFormats = {
-  "Instagram Square (1:1)": { width: 1080, height: 1080, aspectRatio: "1:1" },
-  "Instagram Portrait (4:5)": { width: 1080, height: 1350, aspectRatio: "4:5" },
-  "Twitter Post (16:9)": { width: 1200, height: 675, aspectRatio: "16:9" },
-  "Twitter Header (3:1)": { width: 1500, height: 500, aspectRatio: "3:1" },
-  "Facebook Cover (205:78)": { width: 820, height: 312, aspectRatio: "205:78" },
+  "Instagram Square (1:1)": { width: 1080, height: 1080 },
+  "Instagram Portrait (4:5)": { width: 1080, height: 1350 },
+  "Twitter Post (16:9)": { width: 1200, height: 675 },
+  "Twitter Header (3:1)": { width: 1500, height: 500 },
+  "Facebook Cover (205:78)": { width: 820, height: 312 },
 };
 
 export default function SocialShare() {
@@ -16,16 +18,12 @@ export default function SocialShare() {
     "Instagram Square (1:1)"
   );
   const [isUploading, setIsUploading] = useState(false);
-  const [isTransforming, setIsTransforming] = useState(false);
   const imageRef = useRef(null);
-
-  useEffect(() => {
-    if (uploadedImage) setIsTransforming(true);
-  }, [selectedFormat, uploadedImage]);
 
   const handleFileUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
@@ -40,6 +38,7 @@ export default function SocialShare() {
 
       const data = await response.json();
       setUploadedImage(data.publicId);
+      console.log("Uploaded Image Public ID:", data.publicId);
     } catch (error) {
       console.error(error);
       alert("Failed to upload image");
@@ -48,21 +47,27 @@ export default function SocialShare() {
     }
   };
 
+  const getFormattedImageUrl = () => {
+    if (!uploadedImage) return null;
+    const { width, height } = socialFormats[selectedFormat];
+
+    const transformedUrl = `https://res.cloudinary.com/${cloudName}/image/upload/w_${width},h_${height},c_fill,g_auto/${uploadedImage}.png`;
+
+    console.log("Transformed Image URL:", transformedUrl);
+    return transformedUrl;
+  };
+
   const handleDownload = () => {
-    if (!imageRef.current) return;
-    fetch(imageRef.current.src)
+    const url = getFormattedImageUrl();
+    if (!url) return;
+
+    fetch(url)
       .then((response) => response.blob())
       .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.href = url;
-        link.download = `${selectedFormat
-          .replace(/\s+/g, "_")
-          .toLowerCase()}.png`;
-        document.body.appendChild(link);
+        link.href = URL.createObjectURL(blob);
+        link.download = `${selectedFormat.replace(/\s+/g, "_").toLowerCase()}.png`;
         link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
       });
   };
 
@@ -72,6 +77,7 @@ export default function SocialShare() {
         <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-6">
           Social Media Image Creator
         </h1>
+
         <div className="mb-6">
           <label className="block text-lg font-semibold text-gray-700 mb-2">
             Upload an Image
@@ -109,23 +115,14 @@ export default function SocialShare() {
             </div>
 
             <div className="relative bg-gray-100 p-4 rounded-md shadow-md flex justify-center">
-              {isTransforming && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
-                  <span className="loading loading-spinner loading-lg"></span>
-                </div>
-              )}
-              <CldImage
+              <img
+                ref={imageRef}
+                src={getFormattedImageUrl()}
+                alt="Formatted for social media"
                 width={socialFormats[selectedFormat].width}
                 height={socialFormats[selectedFormat].height}
-                src={uploadedImage}
-                sizes="100vw"
-                alt="transformed image"
-                crop="fill"
-                aspectRatio={socialFormats[selectedFormat].aspectRatio}
-                gravity="auto"
-                ref={imageRef}
-                onLoad={() => setIsTransforming(false)}
                 className="rounded-md shadow-lg"
+                onLoad={() => console.log("Image Loaded")}
               />
             </div>
 
